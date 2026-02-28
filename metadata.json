@@ -1,0 +1,5 @@
+{
+  "name": "AgroSphere AI",
+  "description": "Satellite-powered AI platform for precision agriculture, carbon credit monitoring, and yield prediction.",
+  "requestFramePermissions": ["geolocation"]
+}

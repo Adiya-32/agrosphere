@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#050505] text-white font-sans selection:bg-emerald-500/30;
+  }
+}
+
+@layer components {
+  .neon-border {
+    @apply border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)];
+  }
+  
+  .neon-text-emerald {
+    @apply text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)];
+  }
+
+  .neon-text-blue {
+    @apply text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)];
+  }
+
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+
+  .input-field {
+    @apply bg-white/5 border border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500/50 transition-all;
+  }
+
+  .btn-primary {
+    @apply bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-lg font-medium transition-all active:scale-95;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-black;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-emerald-500/20 rounded-full hover:bg-emerald-500/40 transition-all;
+}
+
+/* Leaflet Dark Mode */
+.leaflet-container {
+  background: #0a0a0a !important;
+}
+.leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+.leaflet-container,
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+z-index: 1 !important;
+}
+
+
+div[class="fixed"],
+div[class*="absolute"],
+[role="dialog"],
+.glass-panel {
+z-index: 9999 !important;
+}
