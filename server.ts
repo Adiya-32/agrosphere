@@ -8,37 +8,49 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 8080;
 
-  // ОБЯЗАТЕЛЬНО: эти две строки позволяют серверу понимать запросы из чата
+  // Настройка парсинга и CORS (чтобы фронтенд мог достучаться)
   app.use(cors());
   app.use(express.json());
 
   const apiKey = process.env.GROQ_API_KEY;
   const groq = new Groq({ apiKey: apiKey || "" });
 
-  // РОУТ ДЛЯ ЧАТА (соответствует твоему фронтенду)
+  // --- ВОТ ЭТОТ БЛОК ОТВЕЧАЕТ ЗА ЧАТ (ОТКУДА) ---
   app.post("/api/chat", async (req, res) => {
     try {
-      const { prompt, messages } = req.body;
-      const userText = prompt || (messages && messages[messages.length - 1].content);
+      const { prompt, messages, context } = req.body;
+      
+      // Вытягиваем текст: либо из prompt, либо из последнего сообщения
+      let userText = prompt || (messages && messages[messages.length - 1]?.content) || "";
+
+      // Добавляем контекст координат, если он пришел с фронтенда
+      if (context && context.location) {
+        userText = `Координаты: ${context.location.lat}, ${context.location.lng}. Вопрос: ${userText}`;
+      }
 
       if (!apiKey) {
+        console.error("ОШИБКА: Нет ключа GROQ_API_KEY в переменных Railway");
         return res.status(500).json({ error: "API Key missing on server" });
       }
 
       const completion = await groq.chat.completions.create({
-        messages: [{ role: "user", content: userText }],
+        messages: [{ role: "user", content: String(userText) }],
         model: "llama3-8b-8192",
       });
 
-      // Возвращаем поле 'text', как того ждет твой AIAssistant.tsx
-      res.json({ text: completion.choices[0].message.content });
+      const aiContent = completion.choices[0]?.message?.content || "ИИ прислал пустой ответ";
+
+      // Отправляем ответ в поле 'text', как ждет твой фронтенд
+      res.json({ text: aiContent });
+
     } catch (error: any) {
-      console.error("Groq Error:", error);
-      res.status(500).json({ error: error.message });
+      console.error("ДЕТАЛЬНАЯ ОШИБКА GROQ:", error.message);
+      res.status(500).json({ error: "Ошибка ИИ", details: error.message });
     }
   });
+  // --- КОНЕЦ БЛОКА ЧАТА (ДОКУДА) ---
 
-  // РАЗДАЧА ФРОНТЕНДА
+  // Раздача фронтенда (папка dist)
   const distPath = path.resolve(process.cwd(), "dist");
   if (fs.existsSync(distPath)) {
     app.use(express.static(distPath));
