@@ -12,6 +12,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "@google/genai": "^1.29.0",
     "@tailwindcss/vite": "^4.2.1",
     "@vitejs/plugin-react": "^5.0.4",
