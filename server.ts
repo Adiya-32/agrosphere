@@ -128,23 +128,23 @@ async function startServer() {
     }
   });
 
-  // --- SERVING STATIC FILES ---
+  
+  const distPath = path.resolve(__dirname, "dist");
 
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.resolve(__dirname, "dist");
+  if (fs.existsSync(distPath)) {
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.resolve(distPath, "index.html"));
     });
+    console.log("📁 Статика: папка dist найдена, раздаю фронтенд.");
+  } else {
+    console.log("⚠️ Статика: папка dist НЕ НАЙДЕНА. Проверь билд!");
+    app.get("/", (req, res) => {
+      res.send("Сервер работает, но папка /dist пуста. Проверь команду build в Railway.");
+    });
   }
 
-  // СЛУШАЕМ ПОРТ
+    
   app.listen(Number(PORT), "0.0.0.0", () => {
     console.log(`🚀 Server is running on port ${PORT}`);
   });
