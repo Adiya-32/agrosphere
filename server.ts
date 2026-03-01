@@ -16,19 +16,33 @@ const groq = new Groq({ apiKey: apiKey || "MISSING" });
 
 app.post("/api/chat", async (req, res) => {
   try {
-    const userText = req.body.prompt || "Привет";
+    const { prompt, messages, context } = req.body;
+    
+    // Собираем текст пользователя
+    let userText = prompt || (messages && messages[messages.length - 1]?.content) || "";
 
-    // ПРОВЕРКА КЛЮЧА
-    if (!apiKey || apiKey === "MISSING") {
-      return res.json({ text: "ОШИБКА: Ключ GROQ_API_KEY не установлен в Railway Variables!" });
+    // ВАЖНО: Добавляем данные о месте прямо в текст сообщения для ИИ
+    if (context && context.location) {
+      const { lat, lng } = context.location;
+      const ndvi = context.layers?.ndvi || "неизвестно";
+      
+      // Мы буквально говорим ИИ: "Представь, что ты смотришь на эту точку"
+      userText = `Контекст участка: Координаты lat: ${lat}, lng: ${lng}. Индекс NDVI (здоровье растений): ${ndvi}. 
+      Вопрос пользователя: ${userText}`;
     }
 
     const completion = await groq.chat.completions.create({
-      messages: [{ role: "user", content: String(userText) }],
+      messages: [
+        { 
+          role: "system", 
+          content: "Ты — AgroSphere AI, эксперт по спутниковому мониторингу полей. Ты видишь координаты и данные NDVI, которые присылает пользователь, и помогаешь их анализировать." 
+        },
+        { role: "user", content: String(userText) }
+      ],
       model: "llama-3.3-70b-versatile",
     });
 
-    res.json({ text: completion.choices[0]?.message?.content || "ИИ промолчал" });
+    res.json({ text: completion.choices[0]?.message?.content });
 
   } catch (error: any) {
     res.status(500).json({ error: error.message });
