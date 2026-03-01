@@ -13,11 +13,11 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbDir = '/app/data';
+const dbDir = './data'; // Используем относительный путь вместо /app/data
 if (!fs.existsSync(dbDir)){
     fs.mkdirSync(dbDir, { recursive: true });
 }
-const db = new Database('/app/data/agrosphere.db');
+const db = new Database(':memory:');
 const JWT_SECRET = process.env.JWT_SECRET || "agro-sphere-secret-2026";
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY || "",
