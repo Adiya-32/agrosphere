@@ -40,12 +40,10 @@ db.exec(`
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  // Принудительно ставим 8080, чтобы не было путаницы с 3000
+  const PORT = process.env.PORT || 8080; 
 
-  // 2. ИНИЦИАЛИЗАЦИЯ ИИ: Берем ключ прямо в момент старта сервера
   const apiKey = process.env.GROQ_API_KEY;
-  
-  // Этот лог в панели Railway покажет, видит ли сервер твой ключ
   console.log("API Key check:", apiKey ? `Present (starts with ${apiKey.slice(0, 6)})` : "MISSING");
 
   const groq = new Groq({
