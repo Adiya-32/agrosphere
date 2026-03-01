@@ -74,4 +74,80 @@ async function startServer() {
       const demoUser = { id: 1, username: username || "Guest" };
       const token = jwt.sign(demoUser, JWT_SECRET);
       res.json({ 
-        token,
+        token, 
+        username: demoUser.username,
+        message: "Demo access granted" 
+      });
+    } catch (e) {
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { messages } = req.body;
+      const completion = await groq.chat.completions.create({
+        messages,
+        model: "mixtral-8x7b-32768",
+      });
+      res.json({ content: completion.choices[0].message.content });
+    } catch (e: any) {
+      // Выводим детальную ошибку от Groq в логи Railway
+      console.error("GROQ API ERROR:", e.message || e);
+      res.status(500).json({ error: "AI Service unavailable" });
+    }
+  });
+
+  app.post("/api/sessions", (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
+    
+    try {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const { location, data } = req.body;
+      const stmt = db.prepare("INSERT INTO sessions (user_id, location, data) VALUES (?, ?, ?)");
+      stmt.run(decoded.id, location, JSON.stringify(data));
+      res.json({ success: true });
+    } catch (e) {
+      res.status(401).json({ error: "Invalid token" });
+    }
+  });
+
+  app.get("/api/sessions", (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
+    
+    try {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const sessions = db.prepare("SELECT * FROM sessions WHERE user_id = ? ORDER BY timestamp DESC LIMIT 5").all(decoded.id);
+      res.json(sessions);
+    } catch (e) {
+      res.status(401).json({ error: "Invalid token" });
+    }
+  });
+
+  // --- SERVING STATIC FILES ---
+
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.resolve(__dirname, "dist");
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
+  }
+
+  // СЛУШАЕМ ПОРТ
+  app.listen(Number(PORT), "0.0.0.0", () => {
+    console.log(`🚀 Server is running on port ${PORT}`);
+  });
+}
+
+startServer();
