@@ -1,6 +1,6 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import path from "path";
+import fs from "fs";
 import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -13,6 +13,10 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const dbDir = '/app/data';
+if (!fs.existsSync(dbDir)){
+    fs.mkdirSync(dbDir, { recursive: true });
+}
 const db = new Database('/app/data/agrosphere.db');
 const JWT_SECRET = process.env.JWT_SECRET || "agro-sphere-secret-2026";
 const groq = new Groq({
@@ -127,8 +131,8 @@ async function startServer() {
 
   const PORT = process.env.PORT || 3000;
 
-app.listen(Number(PORT), "0.0.0.0", () => {
-  console.log(`🚀 Server is booming at http://0.0.0.0:${PORT}`);
+app.listen(Number(process.env.PORT) || 3000, "0.0.0.0", () => {
+  console.log("Server is running on port 3000");
 });
 }
 
