@@ -88,7 +88,7 @@ async function startServer() {
         messages,
         model: "mixtral-8x7b-32768",
       });
-      res.json({ content: completion.choices[0].message.content });
+      res.json({ text: completion.choices[0].message.content });
     } catch (e: any) {
       // Выводим детальную ошибку от Groq в логи Railway
       console.error("GROQ API ERROR:", e.message || e);
