@@ -13,7 +13,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const db = new Database("agrosphere.db");
+const db = new Database('/app/data/agrosphere.db');
 const JWT_SECRET = process.env.JWT_SECRET || "agro-sphere-secret-2026";
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY || "",
